@@ -126,7 +126,6 @@
         let db;
         let currentPlan = localStorage.getItem('skybox_plan') || '100GB';
 
-        // Initialize IndexedDB for heavy file storage
         const request = indexedDB.open('SkyBoxDB', 1);
         
         request.onerror = (event) => console.error("IndexedDB error:", event.target.error);
@@ -168,7 +167,8 @@
             const progressBar = document.getElementById('progressBar');
             const planBadge = document.getElementById('planBadge');
             
-            planBadge.innerText = `${currentPlan === '100GB' ? 'Free Plan (100 GB)' : currentPlan + ' Pro Plan'}`; storageMaxText.innerText = `/ ${currentPlan === '100GB' ? '100 GB' : currentPlan}`;
+            planBadge.innerText = `${currentPlan === '100GB' ? 'Free Plan (100 GB)' : currentPlan + ' Pro Plan'}`;
+            storageMaxText.innerText = `/ ${currentPlan === '100GB' ? '100 GB' : currentPlan}`;
 
             list.innerHTML = '';
             fileCount.innerText = `${files.length} file${files.length === 1 ? '' : 's'}`;
@@ -191,4 +191,69 @@
                 item.className = 'bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex items-center justify-between transition-colors';
                 item.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="
+                        <div class="p-2.5 bg-slate-800 text-indigo-400 rounded-lg">
+                            <i class="fa-regular fa-file-image"></i>
+                        </div>
+                        <div class="truncate">
+                            <p class="text-sm font-medium text-white truncate">${file.name}</p>
+                            <p class="text-xs text-slate-500">${sizeMB} MB</p>
+                        </div>
+                    </div>
+                    <button onclick="removeFile(${file.id})" class="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+
+            const totalMB = (totalBytes / 1024 / 1024).toFixed(2);
+            storageText.innerHTML = `${totalMB} MB `;
+            
+            const maxMB = getQuotaInMB();
+            const percent = Math.min((totalMB / maxMB) * 100, 100);
+            progressBar.style.width = `${Math.max(percent, 1)}%`;
+        }
+
+        function uploadFiles(event) {
+            const uploaded = event.target.files;
+            if (!uploaded.length || !db) return;
+
+            const transaction = db.transaction(['files'], 'readwrite');
+            const store = transaction.objectStore('files');
+
+            for (let f of uploaded) {
+                store.add({ name: f.name, size: f.size, type: f.type, data: f });
+            }
+
+            transaction.oncomplete = () => {
+                loadFiles();
+            };
+        }
+
+        function removeFile(id) {
+            if (!db) return;
+            const transaction = db.transaction(['files'], 'readwrite');
+            const store = transaction.objectStore('files');
+            store.delete(id);
+
+            transaction.oncomplete = () => {
+                loadFiles();
+            };
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('upgradeModal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function selectPlan(plan) {
+            currentPlan = plan;
+            localStorage.setItem('skybox_plan', plan);
+            toggleModal(false);
+            loadFiles();
+            alert(`Successfully upgraded to the ${plan} Plan!`);
+        }
+    </script>
+</body>
+</html>
