@@ -1,7 +1,7 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.use('skybox-v1').then((cache) => {
-      return cache.addAll(['/']);
+    caches.open('skybox-v1').then((cache) => {
+      return cache.addAll(['./']);
     })
   );
 });
