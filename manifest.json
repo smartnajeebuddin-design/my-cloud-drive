@@ -1,1 +1,16 @@
-
+{
+  "name": "SkyBox Cloud",
+  "short_name": "SkyBox",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#4f46e5",
+  "description": "Your private 2TB browser cloud storage.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2913/2913977.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
