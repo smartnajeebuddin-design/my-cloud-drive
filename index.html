@@ -1,860 +1,233 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyBox Cloud Drive</title>
-    
-    <!-- PWA Compliance Meta Tags & Links -->
+    <title>SkyBox BYOS Cloud Drive</title>
+    <!-- PWA Manifest & Theme Integration -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#4f46e5">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913977.png">
-
+    
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#eep2ff',
-                            100: '#e0e7ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Font Awesome Icons & Inter Font -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 9999px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.5); }
-    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-full flex flex-col overflow-hidden select-none">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased relative">
 
-    <!-- MAIN APP WRAPPER -->
-    <div class="flex h-full w-full overflow-hidden relative">
-        
-        <!-- SIDEBAR -->
-        <aside id="sidebar" class="w-64 bg-slate-900 border-r border-slate-800/80 flex flex-col justify-between transition-all duration-300 z-20 flex-shrink-0">
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-cloud"></i>
+            </div>
             <div>
-                <!-- Brand Header -->
-                <div class="h-16 flex items-center px-6 border-b border-slate-800/80 justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
-                            <i class="fa-solid fa-cloud text-lg"></i>
-                        </div>
-                        <div>
-                            <h1 class="font-bold text-base tracking-tight text-white leading-none">SkyBox Cloud</h1>
-                            <span class="text-[10px] font-semibold text-brand-400 tracking-wider uppercase">BYOS 2TB Drive</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Navigation -->
-                <nav class="p-4 space-y-1">
-                    <button id="nav-all" onclick="setCategory('all')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-600/10 text-brand-400 border border-brand-500/20">
-                        <i class="fa-solid fa-folder-closed w-5"></i>
-                        <span>All Files</span>
-                    </button>
-                    <button id="nav-image" onclick="setCategory('image')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
-                        <i class="fa-regular fa-image w-5"></i>
-                        <span>Photos & Images</span>
-                    </button>
-                    <button id="nav-document" onclick="setCategory('document')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
-                        <i class="fa-regular fa-file-lines w-5"></i>
-                        <span>Documents</span>
-                    </button>
-                    <button id="nav-media" onclick="setCategory('media')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
-                        <i class="fa-solid fa-film w-5"></i>
-                        <span>Audio & Video</span>
-                    </button>
-                    <button id="nav-starred" onclick="setCategory('starred')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
-                        <i class="fa-regular fa-star w-5"></i>
-                        <span>Favorites</span>
-                    </button>
-                    <button id="nav-trash" onclick="setCategory('trash')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
-                        <i class="fa-regular fa-trash-can w-5"></i>
-                        <span>Trash</span>
-                    </button>
-                </nav>
+                <h1 class="font-bold text-lg leading-tight text-white">SkyBox Cloud</h1>
+                <p class="text-xs text-indigo-400 font-medium" id="planBadge">Free Plan (100 GB)</p>
             </div>
+        </div>
+        <button onclick="toggleModal(true)" class="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-semibold text-xs px-4 py-2 rounded-full shadow-lg shadow-orange-500/20 hover:scale-105 transition-transform">
+            <i class="fa-solid fa-crown"></i>
+            <span>Upgrade Plan</span>
+        </button>
+    </header>
 
-            <!-- Storage Quota Widget -->
-            <div class="p-4 border-t border-slate-800/80">
-                <div class="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800 space-y-2.5">
-                    <div class="flex items-center justify-between text-xs text-slate-400">
-                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-hard-drive text-brand-500"></i> Storage Used</span>
-                        <span id="quota-percentage" class="font-semibold text-slate-200">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                        <div id="quota-bar" class="bg-gradient-to-r from-brand-500 to-indigo-400 h-full w-0 transition-all duration-500"></div>
-                    </div>
-                    <div class="flex justify-between items-center text-xs">
-                        <span id="quota-text" class="text-slate-400">0 B / 2 TB</span>
-                        <button onclick="openSettingsModal()" class="text-brand-400 hover:underline text-[11px] font-medium">Configure</button>
-                    </div>
-                </div>
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-8 space-y-6">
 
-                <!-- Provider Connection Badge -->
-                <div class="mt-3 flex items-center justify-between text-xs text-slate-400 px-1">
-                    <span class="flex items-center gap-1.5">
-                        <span id="provider-status-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span id="provider-name-display" class="font-medium text-slate-300">Local IndexedDB</span>
-                    </span>
-                    <button onclick="openSettingsModal()" class="hover:text-slate-200 p-1 rounded-md" title="Settings">
-                        <i class="fa-solid fa-gear text-xs"></i>
-                    </button>
-                </div>
-            </div>
-        </aside>
-
-        <!-- MAIN CONTAINER -->
-        <main class="flex-1 flex flex-col min-w-0 bg-slate-950">
-            
-            <!-- TOP HEADER -->
-            <header class="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between gap-4 flex-shrink-0 bg-slate-900/40 backdrop-blur">
-                <!-- Search Input -->
-                <div class="flex-1 max-w-md relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                    <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Search files & folders..." class="w-full bg-slate-900/80 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition-all">
-                </div>
-
-                <!-- Header Action Buttons -->
-                <div class="flex items-center space-x-3">
-                    <button onclick="openNewFolderModal()" class="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-slate-200 text-sm font-medium px-3.5 py-2 rounded-xl transition-all border border-slate-800">
-                        <i class="fa-solid fa-folder-plus text-slate-400"></i>
-                        <span class="hidden sm:inline">New Folder</span>
-                    </button>
-                    
-                    <label class="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-lg shadow-brand-500/20 cursor-pointer transition-all">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <span>Upload File</span>
-                        <input type="file" id="file-upload-input" multiple class="hidden" onchange="handleFileUpload(event)">
-                    </label>
-
-                    <button onclick="openSettingsModal()" class="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-xl border border-transparent hover:border-slate-800 transition-all" title="BYOS Settings">
-                        <i class="fa-solid fa-sliders text-base"></i>
-                    </button>
-                </div>
-            </header>
-
-            <!-- BREADCRUMBS & VIEW CONTROLS -->
-            <div class="px-6 py-3 flex items-center justify-between border-b border-slate-900 bg-slate-950/50">
-                <!-- Breadcrumbs -->
-                <div class="flex items-center space-x-2 text-sm text-slate-400 overflow-x-auto custom-scrollbar" id="breadcrumbs">
-                    <!-- Populated dynamically -->
-                </div>
-
-                <!-- Grid / List Switcher -->
-                <div class="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
-                    <button id="btn-grid-view" onclick="setViewMode('grid')" class="p-1.5 rounded-lg text-brand-400 bg-slate-800 transition-all" title="Grid View">
-                        <i class="fa-solid fa-border-all text-xs"></i>
-                    </button>
-                    <button id="btn-list-view" onclick="setViewMode('list')" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all" title="List View">
-                        <i class="fa-solid fa-list text-xs"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- FILE DISPLAY & DRAG DROP AREA -->
-            <div id="drop-zone" class="flex-1 overflow-y-auto p-6 relative custom-scrollbar" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-                
-                <!-- Drag Overlay Prompt -->
-                <div id="drag-overlay" class="hidden absolute inset-0 bg-brand-600/10 backdrop-blur-sm border-2 border-dashed border-brand-500 rounded-2xl m-4 z-30 flex flex-col items-center justify-center pointer-events-none">
-                    <div class="p-4 bg-brand-600 rounded-full text-white shadow-xl animate-bounce">
-                        <i class="fa-solid fa-arrow-down text-2xl"></i>
-                    </div>
-                    <p class="mt-4 text-base font-bold text-white">Drop files to upload immediately</p>
-                    <p class="text-xs text-brand-300">Files will be safely stored in your active storage provider</p>
-                </div>
-
-                <!-- Empty State -->
-                <div id="empty-state" class="hidden flex-col items-center justify-center h-full text-center py-16">
-                    <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-slate-600 border border-slate-800 mb-3">
-                        <i class="fa-regular fa-folder-open text-2xl"></i>
-                    </div>
-                    <h3 class="text-sm font-semibold text-slate-300">No files stored here yet</h3>
-                    <p class="text-xs text-slate-500 max-w-xs mt-1">Upload files or create folders to start organizing your private BYOS cloud drive.</p>
-                </div>
-
-                <!-- File Container -->
-                <div id="file-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    <!-- Dynamic File Cards -->
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <!-- MODAL: SETTINGS & BYOS CONFIGURATION -->
-    <div id="settings-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-sliders text-brand-500"></i>
-                    <h3 class="font-bold text-base text-slate-100">BYOS Storage Configuration</h3>
-                </div>
-                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-200 p-1">
-                    <i class="fa-solid fa-xmark text-base"></i>
-                </button>
-            </div>
-
-            <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh] custom-scrollbar">
-                <!-- Storage Providers -->
+        <!-- Storage Card Stats -->
+        <div class="bg-gradient-to-r from-indigo-900/40 via-slate-900 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="flex justify-between items-center mb-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Storage Provider</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <button type="button" onclick="selectProvider('indexeddb')" id="provider-btn-indexeddb" class="provider-option p-3 border rounded-xl flex items-center space-x-3 transition-all bg-brand-600/10 border-brand-500 text-brand-400">
-                            <i class="fa-solid fa-database text-lg"></i>
-                            <div class="text-left"><p class="text-xs font-semibold">Browser IndexedDB</p><p class="text-[10px] text-slate-400">Local Zero-Cost</p></div>
-                        </button>
-                        <button type="button" onclick="selectProvider('s3')" id="provider-btn-s3" class="provider-option p-3 border border-slate-800 bg-slate-950/40 rounded-xl flex items-center space-x-3 text-slate-400 hover:border-slate-700 transition-all">
-                            <i class="fa-solid fa-server text-lg"></i>
-                            <div class="text-left"><p class="text-xs font-semibold">Custom S3 Bucket</p><p class="text-[10px] text-slate-500">AWS / Cloudflare R2</p></div>
-                        </button>
-                        <button type="button" onclick="selectProvider('webdav')" id="provider-btn-webdav" class="provider-option p-3 border border-slate-800 bg-slate-950/40 rounded-xl flex items-center space-x-3 text-slate-400 hover:border-slate-700 transition-all">
-                            <i class="fa-solid fa-network-wired text-lg"></i>
-                            <div class="text-left"><p class="text-xs font-semibold">WebDAV Storage</p><p class="text-[10px] text-slate-500">Nextcloud / OwnCloud</p></div>
-                        </button>
-                        <button type="button" onclick="selectProvider('gdrive')" id="provider-btn-gdrive" class="provider-option p-3 border border-slate-800 bg-slate-950/40 rounded-xl flex items-center space-x-3 text-slate-400 hover:border-slate-700 transition-all">
-                            <i class="fa-brands fa-google-drive text-lg"></i>
-                            <div class="text-left"><p class="text-xs font-semibold">Google Drive API</p><p class="text-[10px] text-slate-500">Personal Cloud</p>
-                        </button>
-                    </div>
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Storage Capacity</h2>
+                    <p class="text-2xl md:text-3xl font-extrabold text-white mt-1" id="storageUsedText">0.00 MB <span class="text-slate-500 text-lg font-normal" id="storageMaxText">/ 100 GB</span></p>
                 </div>
-
-                <!-- Config Dynamic Forms -->
-                <div id="config-indexeddb" class="config-panel bg-slate-950/60 p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
-                    <p class="font-semibold text-slate-200"><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Client-Side Encrypted Storage</p>
-                    <p>Files are stored directly inside your device's browser DB. Works 100% offline with zero external bandwidth cost.</p>
-                </div>
-
-                <div id="config-s3" class="config-panel hidden space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">S3 Endpoint URL</label>
-                        <input type="text" id="s3-endpoint" placeholder="https://my-bucket.s3.us-east-1.amazonaws.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Access Key ID</label>
-                            <input type="password" id="s3-key" placeholder="AKIA..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Secret Access Key</label>
-                            <input type="password" id="s3-secret" placeholder="wJalrX..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="config-webdav" class="config-panel hidden space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">WebDAV Server Endpoint</label>
-                        <input type="text" id="webdav-url" placeholder="https://cloud.example.com/remote.php/webdav/" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
-                            <input type="text" id="webdav-user" placeholder="user@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">App Password</label>
-                            <input type="password" id="webdav-pass" placeholder="••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="config-gdrive" class="config-panel hidden space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Google OAuth Client ID</label>
-                        <input type="text" id="gdrive-client-id" placeholder="apps.googleusercontent.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                    </div>
-                </div>
-
-                <!-- Storage Quota Setting -->
-                <div class="pt-3 border-t border-slate-800">
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Max Drive Quota Limit</label>
-                    <select id="quota-selector" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-                        <option value="10737418240">10 GB</option>
-                        <option value="107374182400">100 GB</option>
-                        <option value="1099511627776">1 TB</option>
-                        <option value="2199023255552" selected>2 TB (Maximum Free Limit)</option>
-                    </select>
+                <div class="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-indigo-400">
+                    <i class="fa-solid fa-hard-drive text-2xl"></i>
                 </div>
             </div>
-
-            <div class="px-6 py-4 bg-slate-950 border-t border-slate-800 flex justify-end space-x-3">
-                <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200">Cancel</button>
-                <button onclick="saveSettings()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-medium shadow-lg shadow-brand-500/20">Save Settings</button>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
+                <div id="progressBar" class="bg-indigo-500 h-full rounded-full w-0 transition-all duration-300"></div>
             </div>
+        </div>
+
+        <!-- Upload Action Area -->
+        <div class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 transition-colors bg-slate-900/50 rounded-2xl p-8 text-center flex flex-col items-center justify-center cursor-pointer group" onclick="document.getElementById('fileInput').click()">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-white">Upload Your Files</h3>
+            <p class="text-sm text-slate-400 mt-1 max-w-xs">Select files to store securely in your local browser cloud storage.</p>
+            <button class="mt-5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/25">
+                Browse Files
+            </button>
+            <input type="file" id="fileInput" multiple class="hidden" onchange="uploadFiles(event)">
+        </div>
+
+        <!-- File List Section -->
+        <div class="space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Stored Files</h3>
+                <span id="fileCount" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full font-medium">0 files</span>
+            </div>
+            <div id="fileList" class="space-y-2"></div>
+        </div>
+
+    </main>
+
+    <!-- Upgrade Modal Pop-up -->
+    <div id="upgradeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-6">
+            <button onclick="toggleModal(false)" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">Upgrade Storage Plan</h3>
+                <p class="text-xs text-slate-400">Unlock extra space to store high-resolution media, projects, and large backups.</p>
+            </div>
+
+            <!-- Tiers Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 1TB Plan -->
+                <div class="border border-slate-800 bg-slate-950/50 hover:border-indigo-500/50 rounded-xl p-5 flex flex-col justify-between space-y-4">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Pro Tier</span>
+                        <h4 class="text-xl font-bold text-white mt-1">1 TB Plan</h4>
+                        <p class="text-2xl font-extrabold text-white mt-2">$2.99 <span class="text-xs font-normal text-slate-400">/ mo</span></p>
+                    </div>
+                    <button onclick="selectPlan('1TB')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors">
+                        Select 1 TB
+                    </button>
+                </div>
+
+                <!-- 2TB Plan -->
+                <div class="border-2 border-indigo-500 bg-slate-950/80 rounded-xl p-5 flex flex-col justify-between space-y-4 relative overflow-hidden">
+                    <span class="absolute top-0 right-0 bg-indigo-600 text-[10px] uppercase font-bold text-white px-2 py-0.5 rounded-bl">Best Value</span>
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Ultimate Tier</span>
+                        <h4 class="text-xl font-bold text-white mt-1">2 TB Plan</h4>
+                        <p class="text-2xl font-extrabold text-white mt-2">$4.99 <span class="text-xs font-normal text-slate-400">/ mo</span></p>
+                    </div>
+                    <button onclick="selectPlan('2TB')" class="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-xs rounded-lg hover:brightness-110 transition-all">
+                        Select 2 TB
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-[11px] text-center text-slate-500">Payments will be safely processed via Google Play In-App Billing.</p>
         </div>
     </div>
 
-    <!-- MODAL: NEW FOLDER -->
-    <div id="folder-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-4">
-            <h3 class="font-bold text-base text-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-folder-plus text-brand-500"></i> Create New Folder
-            </h3>
-            <input type="text" id="folder-name-input" placeholder="Folder Name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-            <div class="flex justify-end space-x-2 pt-2">
-                <button onclick="closeNewFolderModal()" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200">Cancel</button>
-                <button onclick="createFolder()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-medium">Create Folder</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: FILE PREVIEWER -->
-    <div id="preview-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col">
-        <div class="h-16 px-6 border-b border-slate-800/80 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <i id="preview-icon" class="fa-solid fa-file text-brand-500"></i>
-                <span id="preview-title" class="font-semibold text-slate-200 text-sm">File Name</span>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button id="preview-download-btn" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium transition-all">
-                    <i class="fa-solid fa-download"></i>
-                    <span>Download</span>
-                </button>
-                <button onclick="closePreviewModal()" class="text-slate-400 hover:text-slate-200 p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-        </div>
-        <div class="flex-1 overflow-auto p-6 flex items-center justify-center" id="preview-content">
-            <!-- Dynamic Preview Content -->
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <!-- Application Script -->
     <script>
-        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('Service Worker Registered Successfully!'))
-                    .catch(err => console.error('Service Worker Registration Failed:', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration issue', err));
             });
         }
 
-        // --- APPLICATION STATE ---
-        let db = null;
-        let currentFolderId = null; // null represents Root
-        let viewMode = 'grid'; // 'grid' or 'list'
-        let currentCategory = 'all'; // 'all', 'image', 'document', 'media', 'starred', 'trash'
-        let searchQuery = '';
-        let activeProvider = 'indexeddb';
-        let maxQuotaBytes = 2199023255552; // 2 TB Limit
-        let folderPathHistory = [{ id: null, name: 'SkyBox Home' }];
+        let currentPlan = localStorage.getItem('skybox_plan') || '100GB';
+        let files = JSON.parse(localStorage.getItem('skybox_files') || '[]');
 
-        // --- INDEXEDDB STORAGE SYSTEM ---
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('SkyBoxCloudDriveDB', 1);
-                request.onupgradeneeded = (e) => {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains('files')) {
-                        const store = database.createObjectStore('files', { keyPath: 'id' });
-                        store.createIndex('parentId', 'parentId', { unique: false });
-                        store.createIndex('category', 'category', { unique: false });
-                    }
-                };
-                request.onsuccess = (e) => {
-                    db = e.target.result;
-                    resolve(db);
-                };
-                request.onerror = (e) => reject(e);
-            });
+        function getQuotaInMB() {
+            if (currentPlan === '1TB') return 1000000;
+            if (currentPlan === '2TB') return 2000000;
+            return 100000; // 100 GB default
         }
 
-        async function saveFileRecord(record) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('files', 'readwrite');
-                const store = tx.objectStore('files');
-                store.put(record);
-                tx.oncomplete = () => resolve();
-                tx.onerror = (e) => reject(e);
-            });
-        }
-
-        async function fetchFileRecords() {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('files', 'readonly');
-                const store = tx.objectStore('files');
-                const request = store.getAll();
-                request.onsuccess = () => resolve(request.result || []);
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        async function deleteFileRecord(id) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('files', 'readwrite');
-                const store = tx.objectStore('files');
-                store.delete(id);
-                tx.oncomplete = () => resolve();
-                tx.onerror = (e) => reject(e);
-            });
-        }
-
-        // --- APP INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initDB();
-            loadSettingsFromStorage();
-            refreshDriveView();
-        });
-
-        // --- DRIVE RENDERER ---
-        async function refreshDriveView() {
-            const allFiles = await fetchFileRecords();
+        function render() {
+            const list = document.getElementById('fileList');
+            const fileCount = document.getElementById('fileCount');
+            const storageText = document.getElementById('storageUsedText');
+            const storageMaxText = document.getElementById('storageMaxText');
+            const progressBar = document.getElementById('progressBar');
+            const planBadge = document.getElementById('planBadge');
             
-            let filtered = allFiles.filter(item => {
-                // Search Query Override
-                if (searchQuery.trim() !== '') {
-                    return item.name.toLowerCase().includes(searchQuery.toLowerCase());
-                }
+            planBadge.innerText = `${currentPlan === '100GB' ? 'Free Plan (100 GB)' : currentPlan + ' Pro Plan'}`;
+            storageMaxText.innerText = `/ ${currentPlan === '100GB' ? '100 GB' : currentPlan}`;
 
-                // Category Handling
-                if (currentCategory === 'trash') return item.isTrash;
-                if (item.isTrash) return false; // Hide trash items everywhere else
+            list.innerHTML = '';
+            fileCount.innerText = `${files.length} file${files.length === 1 ? '' : 's'}`;
 
-                if (currentCategory === 'starred') return item.isStarred && item.type !== 'folder';
-                if (currentCategory !== 'all') {
-                    if (item.type === 'folder') return false;
-                    return item.category === currentCategory;
-                }
-
-                // Parent Folder Match
-                return item.parentId === currentFolderId;
-            });
-
-            const container = document.getElementById('file-container');
-            const emptyState = document.getElementById('empty-state');
-            container.innerHTML = '';
-
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-            } else {
-                emptyState.classList.add('hidden');
-                emptyState.classList.remove('flex');
-
-                if (viewMode === 'grid') {
-                    container.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4';
-                    filtered.forEach(item => container.appendChild(createGridCard(item)));
-                } else {
-                    container.className = 'flex flex-col space-y-2';
-                    filtered.forEach(item => container.appendChild(createListRow(item)));
-                }
-            }
-
-            renderBreadcrumbs();
-            updateStorageQuotaUI(allFiles.filter(f => !f.isTrash));
-        }
-
-        // --- UI CARD BUILDERS ---
-        function createGridCard(item) {
-            const div = document.createElement('div');
-            div.className = 'group relative bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-3.5 transition-all cursor-pointer flex flex-col justify-between h-36';
-
-            const isFolder = item.type === 'folder';
-
-            div.onclick = (e) => {
-                if (e.target.closest('.action-btn')) return;
-                if (isFolder) navigateToFolder(item.id, item.name);
-                else openPreview(item);
-            };
-
-            div.innerHTML = `
-                <div class="flex items-start justify-between">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center ${isFolder ? 'bg-amber-500/10 text-amber-500' : 'bg-brand-500/10 text-brand-400'}">
-                        <i class="${getFileIconClass(item)} text-lg"></i>
-                    </div>
-                    <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        ${!isFolder && !item.isTrash ? `
-                            <button onclick="toggleStar('${item.id}')" class="action-btn p-1 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-amber-400">
-                                <i class="fa-${item.isStarred ? 'solid text-amber-400' : 'regular'} fa-star text-xs"></i>
-                            </button>
-                        ` : ''}
-                        <button onclick="trashOrDelete('${item.id}')" class="action-btn p-1 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-rose-400">
-                            <i class="fa-solid ${item.isTrash ? 'fa-xmark' : 'fa-trash-can'} text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <p class="font-medium text-xs text-slate-200 truncate" title="${item.name}">${item.name}</p>
-                    <p class="text-[10px] text-slate-500 mt-0.5">${isFolder ? 'Folder' : formatBytes(item.size)}</p>
-                </div>
-            `;
-            return div;
-        }
-
-        function createListRow(item) {
-            const div = document.createElement('div');
-            div.className = 'group bg-slate-900/40 hover:bg-slate-900 border border-slate-800/60 rounded-xl px-4 py-2.5 transition-all cursor-pointer flex items-center justify-between';
-            const isFolder = item.type === 'folder';
-
-            div.onclick = (e) => {
-                if (e.target.closest('.action-btn')) return;
-                if (isFolder) navigateToFolder(item.id, item.name);
-                else openPreview(item);
-            };
-
-            div.innerHTML = `
-                <div class="flex items-center space-x-3 min-w-0 flex-1">
-                    <div class="w-7 h-7 rounded-lg flex items-center justify-center ${isFolder ? 'bg-amber-500/10 text-amber-500' : 'bg-brand-500/10 text-brand-400'}">
-                        <i class="${getFileIconClass(item)} text-xs"></i>
-                    </div>
-                    <span class="font-medium text-xs text-slate-200 truncate max-w-xs">${item.name}</span>
-                </div>
-                <div class="flex items-center space-x-6 text-[11px] text-slate-500">
-                    <span class="hidden md:inline">${new Date(item.createdAt).toLocaleDateString()}</span>
-                    <span class="w-16 text-right">${isFolder ? '--' : formatBytes(item.size)}</span>
-                    <div class="flex items-center space-x-1">
-                        ${!isFolder && !item.isTrash ? `
-                            <button onclick="toggleStar('${item.id}')" class="action-btn p-1 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-amber-400">
-                                <i class="fa-${item.isStarred ? 'solid text-amber-400' : 'regular'} fa-star text-xs"></i>
-                            </button>
-                        ` : ''}
-                        <button onclick="trashOrDelete('${item.id}')" class="action-btn p-1 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-rose-400">
-                            <i class="fa-solid ${item.isTrash ? 'fa-xmark' : 'fa-trash-can'} text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            return div;
-        }
-
-        // --- HELPER UTILITIES ---
-        function getFileIconClass(item) {
-            if (item.type === 'folder') return 'fa-solid fa-folder';
-            if (item.category === 'image') return 'fa-regular fa-image';
-            if (item.category === 'media') return 'fa-solid fa-film';
-            if (item.category === 'document') return 'fa-regular fa-file-lines';
-            return 'fa-regular fa-file';
-        }
-
-        function getCategoryFromType(mimeType) {
-            if (mimeType.startsWith('image/')) return 'image';
-            if (mimeType.startsWith('video/') || mimeType.startsWith('audio/')) return 'media';
-            if (mimeType.includes('pdf') || mimeType.includes('text') || mimeType.includes('word')) return 'document';
-            return 'other';
-        }
-
-        function formatBytes(bytes) {
-            if (!bytes || bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // --- CATEGORY & BREADCRUMB NAVIGATION ---
-        function setCategory(category) {
-            currentCategory = category;
-            currentFolderId = null;
-            folderPathHistory = [{ id: null, name: 'SkyBox Home' }];
-
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all';
-            });
-            const activeNav = document.getElementById(`nav-${category}`);
-            if (activeNav) {
-                activeNav.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-600/10 text-brand-400 border border-brand-500/20';
-            }
-
-            refreshDriveView();
-        }
-
-        function navigateToFolder(id, name) {
-            currentFolderId = id;
-            folderPathHistory.push({ id, name });
-            refreshDriveView();
-        }
-
-        function navigateToBreadcrumbIndex(index) {
-            folderPathHistory = folderPathHistory.slice(0, index + 1);
-            currentFolderId = folderPathHistory[folderPathHistory.length - 1].id;
-            refreshDriveView();
-        }
-
-        function renderBreadcrumbs() {
-            const container = document.getElementById('breadcrumbs');
-            container.innerHTML = '';
-            folderPathHistory.forEach((crumb, idx) => {
-                const isLast = idx === folderPathHistory.length - 1;
-                const btn = document.createElement('button');
-                btn.className = `hover:text-slate-200 font-medium whitespace-nowrap text-xs ${isLast ? 'text-slate-100' : 'text-slate-500'}`;
-                btn.innerText = crumb.name;
-                btn.onclick = () => navigateToBreadcrumbIndex(idx);
-                container.appendChild(btn);
-
-                if (!isLast) {
-                    const separator = document.createElement('span');
-                    separator.className = 'text-slate-700 text-xs';
-                    separator.innerText = '/';
-                    container.appendChild(separator);
-                }
-            });
-        }
-
-        // --- FILE UPLOAD HANDLER ---
-        async function handleFileUpload(event) {
-            const files = Array.from(event.target.files);
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const record = {
-                        id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                        parentId: currentFolderId,
-                        name: file.name,
-                        size: file.size,
-                        mimeType: file.type,
-                        category: getCategoryFromType(file.type),
-                        data: e.target.result,
-                        createdAt: Date.now(),
-                        isStarred: false,
-                        isTrash: false,
-                        type: 'file'
-                    };
-                    await saveFileRecord(record);
-                    refreshDriveView();
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // --- DRAG AND DROP LOGIC ---
-        function handleDragOver(e) {
-            e.preventDefault();
-            document.getElementById('drag-overlay').classList.remove('hidden');
-        }
-
-        function handleDragLeave(e) {
-            e.preventDefault();
-            document.getElementById('drag-overlay').classList.add('hidden');
-        }
-
-        async function handleDrop(e) {
-            e.preventDefault();
-            document.getElementById('drag-overlay').classList.add('hidden');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const input = document.getElementById('file-upload-input');
-                input.files = files;
-                handleFileUpload({ target: input });
-            }
-        }
-
-        // --- FOLDER MODAL ACTIONS ---
-        function openNewFolderModal() {
-            document.getElementById('folder-modal').classList.remove('hidden');
-            document.getElementById('folder-name-input').focus();
-        }
-
-        function closeNewFolderModal() {
-            document.getElementById('folder-modal').classList.add('hidden');
-            document.getElementById('folder-name-input').value = '';
-        }
-
-        async function createFolder() {
-            const name = document.getElementById('folder-name-input').value.trim();
-            if (!name) return;
-
-            const record = {
-                id: 'folder_' + Date.now(),
-                parentId: currentFolderId,
-                name: name,
-                size: 0,
-                mimeType: 'folder',
-                category: 'folder',
-                createdAt: Date.now(),
-                isTrash: false,
-                type: 'folder'
-            };
-
-            await saveFileRecord(record);
-            closeNewFolderModal();
-            refreshDriveView();
-        }
-
-        // --- TRASH & DELETE LOGIC ---
-        async function trashOrDelete(id) {
-            const allFiles = await fetchFileRecords();
-            const file = allFiles.find(f => f.id === id);
-            if (file) {
-                if (file.isTrash) {
-                    await deleteFileRecord(id); // Permanent delete
-                } else {
-                    file.isTrash = true; // Move to trash
-                    await saveFileRecord(file);
-                }
-                refreshDriveView();
-            }
-        }
-
-        async function toggleStar(id) {
-            const allFiles = await fetchFileRecords();
-            const file = allFiles.find(f => f.id === id);
-            if (file) {
-                file.isStarred = !file.isStarred;
-                await saveFileRecord(file);
-                refreshDriveView();
-            }
-        }
-
-        // --- SEARCH & VIEW MODE SWITCH ---
-        function handleSearch(query) {
-            searchQuery = query;
-            refreshDriveView();
-        }
-
-        function setViewMode(mode) {
-            viewMode = mode;
-            document.getElementById('btn-grid-view').className = mode === 'grid' ? 'p-1.5 rounded-lg text-brand-400 bg-slate-800 transition-all' : 'p-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all';
-            document.getElementById('btn-list-view').className = mode === 'list' ? 'p-1.5 rounded-lg text-brand-400 bg-slate-800 transition-all' : 'p-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all';
-            refreshDriveView();
-        }
-
-        // --- FILE PREVIEW MODAL ---
-        function openPreview(item) {
-            const modal = document.getElementById('preview-modal');
-            const content = document.getElementById('preview-content');
-            const title = document.getElementById('preview-title');
-            const downloadBtn = document.getElementById('preview-download-btn');
-
-            title.innerText = item.name;
-            downloadBtn.onclick = () => downloadFile(item);
-            content.innerHTML = '';
-
-            if (item.category === 'image') {
-                const img = document.createElement('img');
-                img.src = item.data;
-                img.className = 'max-h-full max-w-full rounded-2xl object-contain shadow-2xl';
-                content.appendChild(img);
-            } else if (item.mimeType.startsWith('video/')) {
-                const video = document.createElement('video');
-                video.src = item.data;
-                video.controls = true;
-                video.className = 'max-h-full max-w-4xl w-full rounded-2xl shadow-2xl';
-                content.appendChild(video);
-            } else if (item.mimeType.startsWith('audio/')) {
-                const audio = document.createElement('audio');
-                audio.src = item.data;
-                audio.controls = true;
-                audio.className = 'w-full max-w-md';
-                content.appendChild(audio);
-            } else {
-                content.innerHTML = `
-                    <div class="text-center space-y-3">
-                        <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-slate-500 mx-auto border border-slate-800">
-                            <i class="fa-regular fa-file-lines text-2xl"></i>
-                        </div>
-                        <p class="text-slate-300 font-medium text-xs">Preview unavailable for this file format</p>
+            if (files.length === 0) {
+                list.innerHTML = `
+                    <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-8 text-center text-slate-500">
+                        <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-600"></i>
+                        <p class="text-sm">No files uploaded yet.</p>
                     </div>
                 `;
             }
 
-            modal.classList.remove('hidden');
-        }
-
-        function closePreviewModal() {
-            document.getElementById('preview-modal').classList.add('hidden');
-        }
-
-        function downloadFile(item) {
-            const a = document.createElement('a');
-            a.href = item.data;
-            a.download = item.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        // --- STORAGE METER & SETTINGS ---
-        function updateStorageQuotaUI(files) {
-            const usedBytes = files.reduce((acc, f) => acc + (f.size || 0), 0);
-            const percentage = Math.min(((usedBytes / maxQuotaBytes) * 100), 100).toFixed(2);
-
-            document.getElementById('quota-percentage').innerText = `${percentage}%`;
-            document.getElementById('quota-bar').style.width = `${Math.max(percentage, 1)}%`;
-            document.getElementById('quota-text').innerText = `${formatBytes(usedBytes)} / ${formatBytes(maxQuotaBytes)}`;
-        }
-
-        function openSettingsModal() {
-            document.getElementById('settings-modal').classList.remove('hidden');
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settings-modal').classList.add('hidden');
-        }
-
-        function selectProvider(provider) {
-            activeProvider = provider;
-            document.querySelectorAll('.provider-option').forEach(btn => {
-                btn.className = 'provider-option p-3 border border-slate-800 bg-slate-950/40 rounded-xl flex items-center space-x-3 text-slate-400 hover:border-slate-700 transition-all';
+            let totalBytes = 0;
+            files.forEach((file, index) => {
+                totalBytes += file.size;
+                const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+                
+                const item = document.createElement('div');
+                item.className = 'bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex items-center justify-between transition-colors';
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="p-2.5 bg-slate-800 text-indigo-400 rounded-lg">
+                            <i class="fa-regular fa-file"></i>
+                        </div>
+                        <div class="truncate">
+                            <p class="text-sm font-medium text-white truncate">${file.name}</p>
+                            <p class="text-xs text-slate-500">${sizeMB} MB</p>
+                        </div>
+                    </div>
+                    <button onclick="removeFile(${index})" class="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                list.appendChild(item);
             });
-            document.querySelectorAll('.config-panel').forEach(panel => panel.classList.add('hidden'));
 
-            const selectedBtn = document.getElementById(`provider-btn-${provider}`);
-            if (selectedBtn) {
-                selectedBtn.className = 'provider-option p-3 border rounded-xl flex items-center space-x-3 transition-all bg-brand-600/10 border-brand-500 text-brand-400';
-            }
+            const totalMB = (totalBytes / 1024 / 1024).toFixed(2);
+            storageText.innerHTML = `${totalMB} MB `;
+            
+            const maxMB = getQuotaInMB();
+            const percent = Math.min((totalMB / maxMB) * 100, 100);
+            progressBar.style.width = `${Math.max(percent, 1)}%`;
 
-            const activePanel = document.getElementById(`config-${provider}`);
-            if (activePanel) activePanel.classList.remove('hidden');
+            localStorage.setItem('skybox_files', JSON.stringify(files));
         }
 
-        function saveSettings() {
-            maxQuotaBytes = parseInt(document.getElementById('quota-selector').value, 10);
-            const settings = {
-                provider: activeProvider,
-                quota: maxQuotaBytes
-            };
-
-            localStorage.setItem('skybox_settings', JSON.stringify(settings));
-
-            const nameMap = {
-                'indexeddb': 'Local IndexedDB',
-                's3': 'Custom S3 Bucket',
-                'webdav': 'WebDAV Storage',
-                'gdrive': 'Google Drive API'
-            };
-            document.getElementById('provider-name-display').innerText = nameMap[activeProvider] || 'Local IndexedDB';
-
-            closeSettingsModal();
-            refreshDriveView();
-        }
-
-        function loadSettingsFromStorage() {
-            const raw = localStorage.getItem('skybox_settings');
-            if (raw) {
-                try {
-                    const settings = JSON.parse(raw);
-                    activeProvider = settings.provider || 'indexeddb';
-                    maxQuotaBytes = settings.quota || 2199023255552;
-
-                    document.getElementById('quota-selector').value = maxQuotaBytes;
-                    selectProvider(activeProvider);
-                } catch (e) {
-                    console.error(e);
-                }
+        function uploadFiles(event) {
+            const uploaded = event.target.files;
+            for (let f of uploaded) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    files.push({ name: f.name, size: f.size, data: e.target.result });
+                    render();
+                };
+                reader.readAsDataURL(f);
             }
         }
+
+        function removeFile(index) {
+            files.splice(index, 1);
+            render();
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('upgradeModal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function selectPlan(plan) {
+            currentPlan = plan;
+            localStorage.setItem('skybox_plan', plan);
+            toggleModal(false);
+            render();
+            alert(`Successfully upgraded to the ${plan} Plan!`);
+        }
+
+        render();
     </script>
 </body>
 </html>
