@@ -1,167 +1,847 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyBox BYOS Cloud Drive</title>
-    <!-- PWA Manifest & Theme Integration -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4f46e5">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913977.png">
-    
-    <!-- Tailwind CSS CDN for Modern Dashboard Design -->
+    <title>Nimbus BYOS Cloud Drive</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
-
-    <!-- Top Navigation Bar -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-500/30">
-                <i class="fa-solid font-bold fa-cloud"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-lg leading-tight text-white">SkyBox Cloud</h1>
-                <p class="text-xs text-indigo-400 font-medium">BYOS 2TB Drive</p>
-            </div>
-        </div>
-        <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="text-xs font-semibold text-emerald-400">Online</span>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-8 space-y-6">
-
-        <!-- Storage Card Stats -->
-        <div class="bg-gradient-to-r from-indigo-900/40 via-slate-900 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                    <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Storage Capacity</h2>
-                    <p class="text-2xl md:text-3xl font-extrabold text-white mt-1" id="storageUsedText">0.00 MB <span class="text-slate-500 text-lg font-normal">/ 2,000 GB</span></p>
-                </div>
-                <div class="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-indigo-400">
-                    <i class="fa-solid fa-hard-drive text-2xl"></i>
-                </div>
-            </div>
-            <!-- Progress Bar -->
-            <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
-                <div id="progressBar" class="bg-indigo-500 h-full rounded-full w-0 transition-all duration-300"></div>
-            </div>
-        </div>
-
-        <!-- Upload Action Area -->
-        <div class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 transition-colors bg-slate-900/50 rounded-2xl p-8 text-center flex flex-col items-center justify-center cursor-pointer group" onclick="document.getElementById('fileInput').click()">
-            <div class="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-white">Upload Your Files</h3>
-            <p class="text-sm text-slate-400 mt-1 max-w-xs">Drag and drop or tap to select files to store securely in your local browser storage.</p>
-            <button class="mt-5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/25">
-                Browse Files
-            </button>
-            <input type="file" id="fileInput" multiple class="hidden" onchange="uploadFiles(event)">
-        </div>
-
-        <!-- File List Section -->
-        <div class="space-y-3">
-            <div class="flex justify-between items-center px-1">
-                <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Stored Files</h3>
-                <span id="fileCount" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full font-medium">0 files</span>
-            </div>
-
-            <div id="fileList" class="space-y-2">
-                <!-- Dynamically populated files -->
-            </div>
-        </div>
-
-    </main>
-
-    <!-- PWA & Application Script -->
     <script>
-        // Register Service Worker for PWABuilder & PWA compliance
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW registered!'))
-                    .catch(err => console.error('SW registration failed:', err));
-            });
-        }
-
-        let files = JSON.parse(localStorage.getItem('skybox_files') || '[]');
-
-        function render() {
-            const list = document.getElementById('fileList');
-            const fileCount = document.getElementById('fileCount');
-            const storageText = document.getElementById('storageUsedText');
-            const progressBar = document.getElementById('progressBar');
-            
-            list.innerHTML = '';
-            fileCount.innerText = `${files.length} file${files.length === 1 ? '' : 's'}`;
-
-            if (files.length === 0) {
-                list.innerHTML = `
-                    <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-8 text-center text-slate-500">
-                        <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-600"></i>
-                        <p class="text-sm">No files uploaded yet.</p>
-                    </div>
-                `;
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
             }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.6); }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-full flex flex-col overflow-hidden select-none">
 
-            let totalBytes = 0;
-            files.forEach((file, index) => {
-                totalBytes += file.size;
-                const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-                
-                const item = document.createElement('div');
-                item.className = 'bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex items-center justify-between transition-colors';
-                item.innerHTML = `
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="p-2.5 bg-slate-800 text-indigo-400 rounded-lg">
-                            <i class="fa-regular fa-file"></i>
+    <!-- APP CONTAINER -->
+    <div class="flex h-full w-full overflow-hidden">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-all duration-300 z-20 flex-shrink-0">
+            <div>
+                <!-- App Logo -->
+                <div class="h-16 flex items-center px-6 border-b border-slate-800 justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-brand-600 rounded-xl text-white shadow-lg shadow-brand-500/30">
+                            <i data-lucide="cloud" class="w-6 h-6"></i>
                         </div>
-                        <div class="truncate">
-                            <p class="text-sm font-medium text-white truncate">${file.name}</p>
-                            <p class="text-xs text-slate-500">${sizeMB} MB</p>
-                        </div>
+                        <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Nimbus Drive</span>
                     </div>
-                    <button onclick="removeFile(${index})" class="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-trash-can"></i>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="p-4 space-y-1">
+                    <button id="nav-all" onclick="setCategory('all')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-brand-600/10 text-brand-500 border border-brand-500/20">
+                        <i data-lucide="files" class="w-5 h-5"></i>
+                        <span>All Files</span>
                     </button>
-                `;
-                list.appendChild(item);
-            });
+                    <button id="nav-images" onclick="setCategory('image')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
+                        <i data-lucide="image" class="w-5 h-5"></i>
+                        <span>Photos & Images</span>
+                    </button>
+                    <button id="nav-documents" onclick="setCategory('document')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                        <span>Documents</span>
+                    </button>
+                    <button id="nav-media" onclick="setCategory('media')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
+                        <i data-lucide="film" class="w-5 h-5"></i>
+                        <span>Audio & Video</span>
+                    </button>
+                    <button id="nav-favorites" onclick="setCategory('starred')" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all">
+                        <i data-lucide="star" class="w-5 h-5"></i>
+                        <span>Starred</span>
+                    </button>
+                </nav>
+            </div>
 
-            const totalMB = (totalBytes / 1024 / 1024).toFixed(2);
-            storageText.innerHTML = `${totalMB} MB <span class="text-slate-500 text-lg font-normal">/ 2,000 GB</span>`;
+            <!-- Storage Quota Widget -->
+            <div class="p-4 border-t border-slate-800/80">
+                <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span class="flex items-center gap-1.5"><i data-lucide="database" class="w-3.5 h-3.5 text-brand-500"></i> Storage Used</span>
+                        <span id="quota-percentage" class="font-semibold text-slate-200">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                        <div id="quota-bar" class="bg-gradient-to-r from-brand-500 to-indigo-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="quota-text" class="text-slate-400">0 B / 2 TB</span>
+                        <button onclick="openSettingsModal()" class="text-brand-500 hover:underline text-[11px] font-medium">Configure</button>
+                    </div>
+                </div>
+
+                <!-- Provider Badge -->
+                <div class="mt-3 flex items-center justify-between text-xs text-slate-400 px-1">
+                    <span class="flex items-center gap-1.5">
+                        <span id="provider-status-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span id="provider-name-display" class="font-medium text-slate-300">IndexedDB Storage</span>
+                    </span>
+                    <button onclick="openSettingsModal()" class="hover:text-slate-200 p-1 rounded-md">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTAINER -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-900">
             
-            // Calculate progress out of 2TB (2,000,000 MB)
-            const percent = Math.min((totalMB / 2000000) * 100, 100);
-            progressBar.style.width = `${Math.max(percent, 1)}%`;
+            <!-- HEADER -->
+            <header class="h-16 border-b border-slate-800 px-6 flex items-center justify-between gap-4 flex-shrink-0 bg-slate-950/40 backdrop-blur">
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-xl relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Search files, documents, photos..." class="w-full bg-slate-800/60 border border-slate-700/60 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                </div>
 
-            localStorage.setItem('skybox_files', JSON.stringify(files));
+                <!-- Actions Right -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="openNewFolderModal()" class="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium px-3.5 py-2 rounded-xl transition-all border border-slate-700">
+                        <i data-lucide="folder-plus" class="w-4 h-4 text-slate-400"></i>
+                        <span class="hidden sm:inline">New Folder</span>
+                    </button>
+                    
+                    <label class="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-lg shadow-brand-500/20 cursor-pointer transition-all">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                        <span>Upload File</span>
+                        <input type="file" id="file-upload-input" multiple class="hidden" onchange="handleFileUpload(event)">
+                    </label>
+
+                    <button onclick="openSettingsModal()" class="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl border border-transparent hover:border-slate-700 transition-all" title="Storage Settings">
+                        <i data-lucide="sliders" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- SUB-HEADER / BREADCRUMBS & VIEWS -->
+            <div class="px-6 py-4 flex items-center justify-between border-b border-slate-800/60">
+                <!-- Breadcrumbs -->
+                <div class="flex items-center space-x-2 text-sm text-slate-400 overflow-x-auto custom-scrollbar" id="breadcrumbs">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- View Toggle Buttons -->
+                <div class="flex items-center space-x-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700/60">
+                    <button id="btn-grid-view" onclick="setViewMode('grid')" class="p-1.5 rounded-md text-brand-500 bg-slate-700/80 transition-all" title="Grid View">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    </button>
+                    <button id="btn-list-view" onclick="setViewMode('list')" class="p-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all" title="List View">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- DRAG & DROP / FILE CONTAINER -->
+            <div id="drop-zone" class="flex-1 overflow-y-auto p-6 relative custom-scrollbar" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                
+                <!-- Overlay Drag Prompt -->
+                <div id="drag-overlay" class="hidden absolute inset-0 bg-brand-600/20 backdrop-blur-sm border-2 border-dashed border-brand-500 rounded-2xl m-4 z-30 flex flex-col items-center justify-center pointer-events-none">
+                    <div class="p-4 bg-brand-600 rounded-full text-white shadow-xl animate-bounce">
+                        <i data-lucide="arrow-down" class="w-8 h-8"></i>
+                    </div>
+                    <p class="mt-4 text-lg font-bold text-white">Drop files to upload immediately</p>
+                    <p class="text-sm text-brand-200">Files will be saved into your active storage configuration</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden flex-col items-center justify-center h-full text-center py-16">
+                    <div class="p-5 bg-slate-800/50 rounded-full text-slate-500 border border-slate-700/50 mb-4">
+                        <i data-lucide="folder-open" class="w-12 h-12"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-slate-200">No files found</h3>
+                    <p class="text-sm text-slate-400 max-w-sm mt-1">Drag and drop files here or click the upload button to start storing files in your client-side drive.</p>
+                </div>
+
+                <!-- Files Content Container -->
+                <div id="file-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    <!-- Dynamic File Cards Render Here -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: SETTINGS / BYOS CONFIGURATION -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="hard-drive" class="w-5 h-5 text-brand-500"></i>
+                    <h3 class="font-bold text-lg text-slate-100">Bring Your Own Storage Settings</h3>
+                </div>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-200 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6 custom-scrollbar">
+                <!-- Provider Selector -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Storage Provider</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" onclick="selectProvider('indexeddb')" id="provider-btn-indexeddb" class="provider-option p-3 border rounded-xl flex flex-col items-center justify-center gap-2 text-center transition-all bg-brand-600/10 border-brand-500 text-brand-400">
+                            <i data-lucide="database" class="w-6 h-6"></i>
+                            <span class="text-xs font-medium">Browser IndexedDB</span>
+                        </button>
+                        <button type="button" onclick="selectProvider('s3')" id="provider-btn-s3" class="provider-option p-3 border border-slate-800 bg-slate-800/40 rounded-xl flex flex-col items-center justify-center gap-2 text-center text-slate-400 hover:border-slate-700 transition-all">
+                            <i data-lucide="server" class="w-6 h-6"></i>
+                            <span class="text-xs font-medium">Custom S3 Bucket</span>
+                        </button>
+                        <button type="button" onclick="selectProvider('webdav')" id="provider-btn-webdav" class="provider-option p-3 border border-slate-800 bg-slate-800/40 rounded-xl flex flex-col items-center justify-center gap-2 text-center text-slate-400 hover:border-slate-700 transition-all">
+                            <i data-lucide="globe" class="w-6 h-6"></i>
+                            <span class="text-xs font-medium">WebDAV Storage</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Provider Configurations -->
+                <div id="config-indexeddb" class="config-panel space-y-4">
+                    <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-2">
+                        <p class="font-semibold text-slate-100 flex items-center gap-1.5"><i data-lucide="info" class="w-4 h-4 text-brand-500"></i> Zero Server Setup</p>
+                        <p>Stores files directly inside your browser's persistent database. No credentials required, fully private, works offline.</p>
+                    </div>
+                </div>
+
+                <div id="config-s3" class="config-panel hidden space-y-4">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">S3 Bucket Endpoint URL</label>
+                            <input type="text" id="s3-endpoint" placeholder="https://my-bucket.s3.us-east-1.amazonaws.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Access Key ID</label>
+                                <input type="password" id="s3-key" placeholder="AKIAIOSFODNN7EXAMPLE" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Secret Access Key</label>
+                                <input type="password" id="s3-secret" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="config-webdav" class="config-panel hidden space-y-4">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">WebDAV Server URL</label>
+                            <input type="text" id="webdav-url" placeholder="https://cloud.example.com/remote.php/webdav/" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
+                                <input type="text" id="webdav-user" placeholder="user@example.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Password / App Key</label>
+                                <input type="password" id="webdav-pass" placeholder="••••••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulated Max Storage Quota Config -->
+                <div class="pt-4 border-t border-slate-800">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Drive Storage Quota Limit</label>
+                    <div class="flex items-center space-x-3">
+                        <select id="quota-selector" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                            <option value="10737418240">10 GB</option>
+                            <option value="107374182400">100 GB</option>
+                            <option value="1099511627776">1 TB</option>
+                            <option value="2199023255552" selected>2 TB (Maximum Free)</option>
+                        </select>
+                        <span class="text-xs text-slate-400">Quota ceiling shown in stats dashboard</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-950 border-t border-slate-800 flex justify-end space-x-3">
+                <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 transition-all">Cancel</button>
+                <button onclick="saveSettings()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-brand-500/20 transition-all">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NEW FOLDER -->
+    <div id="folder-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <h3 class="font-bold text-lg text-slate-100 flex items-center gap-2">
+                <i data-lucide="folder-plus" class="w-5 h-5 text-brand-500"></i>
+                Create New Folder
+            </h3>
+            <input type="text" id="folder-name-input" placeholder="Folder Name" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+            <div class="flex justify-end space-x-3 pt-2">
+                <button onclick="closeNewFolderModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 transition-all">Cancel</button>
+                <button onclick="createFolder()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-medium transition-all">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PREVIEW -->
+    <div id="preview-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col">
+        <div class="h-16 px-6 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i id="preview-icon" data-lucide="file" class="w-5 h-5 text-brand-500"></i>
+                <span id="preview-title" class="font-semibold text-slate-200 text-sm">File Name</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button id="preview-download-btn" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-all">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Download</span>
+                </button>
+                <button onclick="closePreviewModal()" class="text-slate-400 hover:text-slate-200 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 overflow-auto p-6 flex items-center justify-center" id="preview-content">
+            <!-- Dynamic Preview Content -->
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- APPLICATION STATE ---
+        let db = null;
+        let currentFolderId = null; // null = root
+        let viewMode = 'grid'; // 'grid' | 'list'
+        let currentCategory = 'all'; // 'all', 'image', 'document', 'media', 'starred'
+        let searchQuery = '';
+        let activeProvider = 'indexeddb';
+        let maxQuotaBytes = 2199023255552; // 2 TB Default limit
+        let folderPathHistory = [{ id: null, name: 'Drive Home' }];
+
+        // --- INDEXEDDB STORAGE SYSTEM ---
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('NimbusStorageDriveDB', 1);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('files')) {
+                        const store = database.createObjectStore('files', { keyPath: 'id' });
+                        store.createIndex('parentId', 'parentId', { unique: false });
+                        store.createIndex('category', 'category', { unique: false });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e);
+            });
         }
 
-        function uploadFiles(event) {
-            const uploaded = event.target.files;
-            for (let f of uploaded) {
+        // --- CRUD OPERATIONS ---
+        async function saveFileRecord(record) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('files', 'readwrite');
+                const store = tx.objectStore('files');
+                store.put(record);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e);
+            });
+        }
+
+        async function fetchFileRecords() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('files', 'readonly');
+                const store = tx.objectStore('files');
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        async function deleteFileRecord(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('files', 'readwrite');
+                const store = tx.objectStore('files');
+                store.delete(id);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e);
+            });
+        }
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            loadSettingsFromStorage();
+            refreshDriveView();
+            lucide.createIcons();
+        });
+
+        // --- RENDER LOGIC ---
+        async function refreshDriveView() {
+            const allFiles = await fetchFileRecords();
+            
+            // Filter files by folder, category, and search query
+            let filtered = allFiles.filter(item => {
+                // If searching, ignore current folder boundary
+                if (searchQuery.trim() !== '') {
+                    return item.name.toLowerCase().includes(searchQuery.toLowerCase());
+                }
+
+                // Category navigation
+                if (currentCategory === 'starred') return item.isStarred && item.type !== 'folder';
+                if (currentCategory !== 'all') {
+                    if (item.type === 'folder') return false;
+                    return item.category === currentCategory;
+                }
+
+                // Default folder boundary check
+                return item.parentId === currentFolderId;
+            });
+
+            const container = document.getElementById('file-container');
+            const emptyState = document.getElementById('empty-state');
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+
+                if (viewMode === 'grid') {
+                    container.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4';
+                    filtered.forEach(item => container.appendChild(createGridCard(item)));
+                } else {
+                    container.className = 'flex flex-col space-y-2';
+                    filtered.forEach(item => container.appendChild(createListRow(item)));
+                }
+            }
+
+            renderBreadcrumbs();
+            updateStorageQuotaUI(allFiles);
+            lucide.createIcons();
+        }
+
+        // --- GRID CARD UI ---
+        function createGridCard(item) {
+            const div = document.createElement('div');
+            div.className = 'group relative bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-3.5 transition-all cursor-pointer flex flex-col justify-between h-40';
+
+            const isFolder = item.type === 'folder';
+
+            div.onclick = (e) => {
+                if (e.target.closest('.action-btn')) return;
+                if (isFolder) {
+                    navigateToFolder(item.id, item.name);
+                } else {
+                    openPreview(item);
+                }
+            };
+
+            div.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="p-2.5 rounded-xl ${isFolder ? 'bg-amber-500/10 text-amber-500' : 'bg-brand-500/10 text-brand-500'}">
+                        <i data-lucide="${getFileIcon(item)}" class="w-6 h-6"></i>
+                    </div>
+                    <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        ${!isFolder ? `
+                            <button onclick="toggleStar('${item.id}')" class="action-btn p-1.5 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-amber-400">
+                                <i data-lucide="star" class="w-4 h-4 ${item.isStarred ? 'fill-amber-400 text-amber-400' : ''}"></i>
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteItem('${item.id}')" class="action-btn p-1.5 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-rose-400">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <p class="font-medium text-sm text-slate-200 truncate" title="${item.name}">${item.name}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">${isFolder ? 'Folder' : formatBytes(item.size)}</p>
+                </div>
+            `;
+            return div;
+        }
+
+        // --- LIST ROW UI ---
+        function createListRow(item) {
+            const div = document.createElement('div');
+            div.className = 'group bg-slate-800/30 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl px-4 py-3 transition-all cursor-pointer flex items-center justify-between';
+            const isFolder = item.type === 'folder';
+
+            div.onclick = (e) => {
+                if (e.target.closest('.action-btn')) return;
+                if (isFolder) navigateToFolder(item.id, item.name);
+                else openPreview(item);
+            };
+
+            div.innerHTML = `
+                <div class="flex items-center space-x-3 min-w-0 flex-1">
+                    <div class="p-2 rounded-lg ${isFolder ? 'bg-amber-500/10 text-amber-500' : 'bg-brand-500/10 text-brand-500'}">
+                        <i data-lucide="${getFileIcon(item)}" class="w-5 h-5"></i>
+                    </div>
+                    <span class="font-medium text-sm text-slate-200 truncate max-w-xs sm:max-w-md">${item.name}</span>
+                </div>
+                <div class="flex items-center space-x-6 text-xs text-slate-400">
+                    <span class="hidden md:inline">${new Date(item.createdAt).toLocaleDateString()}</span>
+                    <span class="w-20 text-right">${isFolder ? '--' : formatBytes(item.size)}</span>
+                    <div class="flex items-center space-x-1">
+                        ${!isFolder ? `
+                            <button onclick="toggleStar('${item.id}')" class="action-btn p-1.5 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-amber-400">
+                                <i data-lucide="star" class="w-4 h-4 ${item.isStarred ? 'fill-amber-400 text-amber-400' : ''}"></i>
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteItem('${item.id}')" class="action-btn p-1.5 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-rose-400">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        // --- FILE HELPER FUNCTIONS ---
+        function getFileIcon(item) {
+            if (item.type === 'folder') return 'folder';
+            if (item.category === 'image') return 'image';
+            if (item.category === 'media') return 'film';
+            if (item.category === 'document') return 'file-text';
+            return 'file';
+        }
+
+        function getCategoryFromType(mimeType) {
+            if (mimeType.startsWith('image/')) return 'image';
+            if (mimeType.startsWith('video/') || mimeType.startsWith('audio/')) return 'media';
+            if (mimeType.includes('pdf') || mimeType.includes('text') || mimeType.includes('word') || mimeType.includes('document')) return 'document';
+            return 'other';
+        }
+
+        function formatBytes(bytes, decimals = 1) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // --- NAVIGATION & CATEGORY ---
+        function setCategory(category) {
+            currentCategory = category;
+            currentFolderId = null;
+            folderPathHistory = [{ id: null, name: 'Drive Home' }];
+
+            // Highlight Active Nav Sidebar Button
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all';
+            });
+            const activeBtn = document.getElementById(`nav-${category === 'starred' ? 'favorites' : category === 'document' ? 'documents' : category === 'image' ? 'images' : category === 'media' ? 'media' : 'all'}`);
+            if (activeBtn) {
+                activeBtn.className = 'nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-brand-600/10 text-brand-500 border border-brand-500/20';
+            }
+
+            refreshDriveView();
+        }
+
+        function navigateToFolder(id, name) {
+            currentFolderId = id;
+            folderPathHistory.push({ id, name });
+            refreshDriveView();
+        }
+
+        function navigateToBreadcrumbIndex(index) {
+            folderPathHistory = folderPathHistory.slice(0, index + 1);
+            currentFolderId = folderPathHistory[folderPathHistory.length - 1].id;
+            refreshDriveView();
+        }
+
+        function renderBreadcrumbs() {
+            const container = document.getElementById('breadcrumbs');
+            container.innerHTML = '';
+            folderPathHistory.forEach((crumb, idx) => {
+                const isLast = idx === folderPathHistory.length - 1;
+                const btn = document.createElement('button');
+                btn.className = `hover:text-slate-200 font-medium whitespace-nowrap ${isLast ? 'text-slate-100' : 'text-slate-400'}`;
+                btn.innerText = crumb.name;
+                btn.onclick = () => navigateToBreadcrumbIndex(idx);
+                container.appendChild(btn);
+
+                if (!isLast) {
+                    const chevron = document.createElement('span');
+                    chevron.className = 'text-slate-600';
+                    chevron.innerText = '/';
+                    container.appendChild(chevron);
+                }
+            });
+        }
+
+        // --- FILE UPLOAD LOGIC ---
+        async function handleFileUpload(event) {
+            const files = Array.from(event.target.files);
+            for (const file of files) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    files.push({ name: f.name, size: f.size, data: e.target.result });
-                    render();
+                reader.onload = async (e) => {
+                    const record = {
+                        id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                        parentId: currentFolderId,
+                        name: file.name,
+                        size: file.size,
+                        mimeType: file.type,
+                        category: getCategoryFromType(file.type),
+                        data: e.target.result, // ArrayBuffer or Base64 Data URL
+                        createdAt: Date.now(),
+                        isStarred: false,
+                        type: 'file'
+                    };
+                    await saveFileRecord(record);
+                    refreshDriveView();
                 };
-                reader.readAsDataURL(f);
+                reader.readAsDataURL(file);
             }
         }
 
-        function removeFile(index) {
-            files.splice(index, 1);
-            render();
+        // --- DRAG AND DROP HANDLERS ---
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('drag-overlay').classList.remove('hidden');
         }
 
-        render();
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('drag-overlay').classList.add('hidden');
+        }
+
+        async function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('drag-overlay').classList.add('hidden');
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) {
+                const input = document.getElementById('file-upload-input');
+                input.files = e.dataTransfer.files;
+                handleFileUpload({ target: input });
+            }
+        }
+
+        // --- FOLDER CREATION ---
+        function openNewFolderModal() {
+            document.getElementById('folder-modal').classList.remove('hidden');
+            document.getElementById('folder-name-input').focus();
+        }
+
+        function closeNewFolderModal() {
+            document.getElementById('folder-modal').classList.add('hidden');
+            document.getElementById('folder-name-input').value = '';
+        }
+
+        async function createFolder() {
+            const nameInput = document.getElementById('folder-name-input');
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            const record = {
+                id: 'folder_' + Date.now(),
+                parentId: currentFolderId,
+                name: name,
+                size: 0,
+                mimeType: 'folder',
+                category: 'folder',
+                createdAt: Date.now(),
+                type: 'folder'
+            };
+
+            await saveFileRecord(record);
+            closeNewFolderModal();
+            refreshDriveView();
+        }
+
+        // --- ACTIONS: STAR & DELETE ---
+        async function toggleStar(id) {
+            const allFiles = await fetchFileRecords();
+            const file = allFiles.find(f => f.id === id);
+            if (file) {
+                file.isStarred = !file.isStarred;
+                await saveFileRecord(file);
+                refreshDriveView();
+            }
+        }
+
+        async function deleteItem(id) {
+            await deleteFileRecord(id);
+            refreshDriveView();
+        }
+
+        // --- SEARCH & VIEW SWITCHING ---
+        function handleSearch(query) {
+            searchQuery = query;
+            refreshDriveView();
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.getElementById('btn-grid-view').className = mode === 'grid' ? 'p-1.5 rounded-md text-brand-500 bg-slate-700/80 transition-all' : 'p-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all';
+            document.getElementById('btn-list-view').className = mode === 'list' ? 'p-1.5 rounded-md text-brand-500 bg-slate-700/80 transition-all' : 'p-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all';
+            refreshDriveView();
+        }
+
+        // --- PREVIEW MODAL ---
+        function openPreview(item) {
+            const modal = document.getElementById('preview-modal');
+            const content = document.getElementById('preview-content');
+            const title = document.getElementById('preview-title');
+            const downloadBtn = document.getElementById('preview-download-btn');
+
+            title.innerText = item.name;
+            downloadBtn.onclick = () => downloadFile(item);
+            content.innerHTML = '';
+
+            if (item.category === 'image') {
+                const img = document.createElement('img');
+                img.src = item.data;
+                img.className = 'max-h-full max-w-full rounded-xl object-contain shadow-2xl';
+                content.appendChild(img);
+            } else if (item.mimeType.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = item.data;
+                video.controls = true;
+                video.className = 'max-h-full max-w-4xl w-full rounded-xl shadow-2xl';
+                content.appendChild(video);
+            } else if (item.mimeType.startsWith('audio/')) {
+                const audio = document.createElement('audio');
+                audio.src = item.data;
+                audio.controls = true;
+                audio.className = 'w-full max-w-md';
+                content.appendChild(audio);
+            } else {
+                content.innerHTML = `
+                    <div class="text-center space-y-3">
+                        <div class="p-4 bg-slate-800 rounded-full w-16 h-16 mx-auto flex items-center justify-center text-slate-400">
+                            <i data-lucide="file-text" class="w-8 h-8"></i>
+                        </div>
+                        <p class="text-slate-300 font-medium">Preview not available for this file type</p>
+                        <p class="text-xs text-slate-500">${item.mimeType || 'Unknown MIME type'}</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('preview-modal').classList.add('hidden');
+        }
+
+        function downloadFile(item) {
+            const a = document.createElement('a');
+            a.href = item.data;
+            a.download = item.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // --- QUOTA STATS UPDATE ---
+        function updateStorageQuotaUI(files) {
+            const usedBytes = files.reduce((acc, f) => acc + (f.size || 0), 0);
+            const percentage = Math.min(((usedBytes / maxQuotaBytes) * 100), 100).toFixed(2);
+
+            document.getElementById('quota-percentage').innerText = `${percentage}%`;
+            document.getElementById('quota-bar').style.width = `${Math.max(percentage, 1)}%`;
+            document.getElementById('quota-text').innerText = `${formatBytes(usedBytes)} / ${formatBytes(maxQuotaBytes)}`;
+        }
+
+        // --- SETTINGS / BYOS CONFIGURATION LOGIC ---
+        function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function selectProvider(provider) {
+            activeProvider = provider;
+            document.querySelectorAll('.provider-option').forEach(btn => {
+                btn.className = 'provider-option p-3 border border-slate-800 bg-slate-800/40 rounded-xl flex flex-col items-center justify-center gap-2 text-center text-slate-400 hover:border-slate-700 transition-all';
+            });
+            document.querySelectorAll('.config-panel').forEach(panel => panel.classList.add('hidden'));
+
+            const selectedBtn = document.getElementById(`provider-btn-${provider}`);
+            if (selectedBtn) {
+                selectedBtn.className = 'provider-option p-3 border rounded-xl flex flex-col items-center justify-center gap-2 text-center transition-all bg-brand-600/10 border-brand-500 text-brand-400';
+            }
+
+            const activePanel = document.getElementById(`config-${provider}`);
+            if (activePanel) activePanel.classList.remove('hidden');
+        }
+
+        function saveSettings() {
+            const quotaSelect = document.getElementById('quota-selector');
+            maxQuotaBytes = parseInt(quotaSelect.value, 10);
+
+            const settings = {
+                provider: activeProvider,
+                quota: maxQuotaBytes,
+                s3Endpoint: document.getElementById('s3-endpoint').value,
+                s3Key: document.getElementById('s3-key').value,
+                webdavUrl: document.getElementById('webdav-url').value,
+                webdavUser: document.getElementById('webdav-user').value
+            };
+
+            localStorage.setItem('nimbus_byos_settings', JSON.stringify(settings));
+
+            // Update badge text
+            const nameMap = {
+                'indexeddb': 'IndexedDB Storage',
+                's3': 'Custom S3 Bucket',
+                'webdav': 'WebDAV Storage'
+            };
+            document.getElementById('provider-name-display').innerText = nameMap[activeProvider] || 'IndexedDB Storage';
+
+            closeSettingsModal();
+            refreshDriveView();
+        }
+
+        function loadSettingsFromStorage() {
+            const raw = localStorage.getItem('nimbus_byos_settings');
+            if (raw) {
+                try {
+                    const settings = JSON.parse(raw);
+                    activeProvider = settings.provider || 'indexeddb';
+                    maxQuotaBytes = settings.quota || 2199023255552;
+
+                    document.getElementById('quota-selector').value = maxQuotaBytes;
+                    if (settings.s3Endpoint) document.getElementById('s3-endpoint').value = settings.s3Endpoint;
+                    if (settings.s3Key) document.getElementById('s3-key').value = settings.s3Key;
+                    if (settings.webdavUrl) document.getElementById('webdav-url').value = settings.webdavUrl;
+                    if (settings.webdavUser) document.getElementById('webdav-user').value = settings.webdavUser;
+
+                    selectProvider(activeProvider);
+                    document.getElementById('provider-name-display').innerText = activeProvider === 's3' ? 'Custom S3 Bucket' : activeProvider === 'webdav' ? 'WebDAV Storage' : 'IndexedDB Storage';
+                } catch (e) {
+                    console.error('Error loading settings', e);
+                }
+            }
+        }
     </script>
 </body>
 </html>
