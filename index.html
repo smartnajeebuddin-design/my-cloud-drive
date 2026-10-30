@@ -58,7 +58,7 @@
                 <i class="fa-solid fa-cloud-arrow-up"></i>
             </div>
             <h3 class="text-lg font-semibold text-white">Upload Your Files</h3>
-            <p class="text-sm text-slate-400 mt-1 max-w-xs">Select files to store securely in your local browser cloud storage.</p>
+            <p class="text-sm text-slate-400 mt-1 max-w-xs">Select photos or documents to store securely in your browser cloud storage.</p>
             <button class="mt-5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/25">
                 Browse Files
             </button>
@@ -90,7 +90,6 @@
                 <p class="text-xs text-slate-400">Unlock extra space to store high-resolution media, projects, and large backups.</p>
             </div>
 
-            <!-- Tiers Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- 1TB Plan -->
                 <div class="border border-slate-800 bg-slate-950/50 hover:border-indigo-500/50 rounded-xl p-5 flex flex-col justify-between space-y-4">
@@ -122,16 +121,27 @@
         </div>
     </div>
 
-    <!-- Application Script -->
+    <!-- Application Script with IndexedDB -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration issue', err));
-            });
-        }
-
+        let db;
         let currentPlan = localStorage.getItem('skybox_plan') || '100GB';
-        let files = JSON.parse(localStorage.getItem('skybox_files') || '[]');
+
+        // Initialize IndexedDB for heavy file storage
+        const request = indexedDB.open('SkyBoxDB', 1);
+        
+        request.onerror = (event) => console.error("IndexedDB error:", event.target.error);
+        
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            loadFiles();
+        };
+
+        request.onupgradeneeded = (event) => {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains('files')) {
+                db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+            }
+        };
 
         function getQuotaInMB() {
             if (currentPlan === '1TB') return 1000000;
@@ -139,7 +149,18 @@
             return 100000; // 100 GB default
         }
 
-        function render() {
+        function loadFiles() {
+            if (!db) return;
+            const transaction = db.transaction(['files'], 'readonly');
+            const store = transaction.objectStore('files');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                renderFiles(request.result);
+            };
+        }
+
+        function renderFiles(files) {
             const list = document.getElementById('fileList');
             const fileCount = document.getElementById('fileCount');
             const storageText = document.getElementById('storageUsedText');
@@ -147,8 +168,7 @@
             const progressBar = document.getElementById('progressBar');
             const planBadge = document.getElementById('planBadge');
             
-            planBadge.innerText = `${currentPlan === '100GB' ? 'Free Plan (100 GB)' : currentPlan + ' Pro Plan'}`;
-            storageMaxText.innerText = `/ ${currentPlan === '100GB' ? '100 GB' : currentPlan}`;
+            planBadge.innerText = `${currentPlan === '100GB' ? 'Free Plan (100 GB)' : currentPlan + ' Pro Plan'}`; storageMaxText.innerText = `/ ${currentPlan === '100GB' ? '100 GB' : currentPlan}`;
 
             list.innerHTML = '';
             fileCount.innerText = `${files.length} file${files.length === 1 ? '' : 's'}`;
@@ -163,7 +183,7 @@
             }
 
             let totalBytes = 0;
-            files.forEach((file, index) => {
+            files.forEach((file) => {
                 totalBytes += file.size;
                 const sizeMB = (file.size / 1024 / 1024).toFixed(2);
                 
@@ -171,63 +191,4 @@
                 item.className = 'bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex items-center justify-between transition-colors';
                 item.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="p-2.5 bg-slate-800 text-indigo-400 rounded-lg">
-                            <i class="fa-regular fa-file"></i>
-                        </div>
-                        <div class="truncate">
-                            <p class="text-sm font-medium text-white truncate">${file.name}</p>
-                            <p class="text-xs text-slate-500">${sizeMB} MB</p>
-                        </div>
-                    </div>
-                    <button onclick="removeFile(${index})" class="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                `;
-                list.appendChild(item);
-            });
-
-            const totalMB = (totalBytes / 1024 / 1024).toFixed(2);
-            storageText.innerHTML = `${totalMB} MB `;
-            
-            const maxMB = getQuotaInMB();
-            const percent = Math.min((totalMB / maxMB) * 100, 100);
-            progressBar.style.width = `${Math.max(percent, 1)}%`;
-
-            localStorage.setItem('skybox_files', JSON.stringify(files));
-        }
-
-        function uploadFiles(event) {
-            const uploaded = event.target.files;
-            for (let f of uploaded) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    files.push({ name: f.name, size: f.size, data: e.target.result });
-                    render();
-                };
-                reader.readAsDataURL(f);
-            }
-        }
-
-        function removeFile(index) {
-            files.splice(index, 1);
-            render();
-        }
-
-        function toggleModal(show) {
-            const modal = document.getElementById('upgradeModal');
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
-        }
-
-        function selectPlan(plan) {
-            currentPlan = plan;
-            localStorage.setItem('skybox_plan', plan);
-            toggleModal(false);
-            render();
-            alert(`Successfully upgraded to the ${plan} Plan!`);
-        }
-
-        render();
-    </script>
-</body>
-</html>
+                        <div class="
