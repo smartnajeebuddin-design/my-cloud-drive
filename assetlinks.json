@@ -1,0 +1,16 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.skybox.clouddrive",
+      "sha256_cert_fingerprints": [
+        "AC:3C:C4:59:D4:43:25:4B:D7:A7:49:B8:40:71:49:FC:56:9B:21:1C:09:E2:71:97:55:6B:40:99:17:17:C8:8F",
+        "D4:20:13:74:E1:3A:08:93:25:8B:BE:92:68:65:4D:A6:01:CC:43:82:D7:FB:9A:8F:AD:D1:B7:EC:23:FD:85:73",
+        "CD:E3:C2:0C:AC:BC:54:B3:01:F1:61:E3:67:90:E6:E4:B2:D5:7B:5D:E7:63:75:60:97:7A:DA:6C:B1:68:83:D3"
+      ]
+    }
+  }
+]
